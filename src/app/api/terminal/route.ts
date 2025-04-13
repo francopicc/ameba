@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-// Variables de entorno del lado del servidor
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-// Verifica si están definidas antes de crear el cliente
 if (!supabaseUrl || !supabaseKey) {
     console.error("Supabase environment variables are not set");
 }
 
-// Crear cliente Supabase
 const supabase = createClient(
     supabaseUrl as string,
     supabaseKey as string
@@ -18,11 +15,8 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
     try {
-        // Agregamos logging para depurar
-        console.log("Iniciando solicitud POST");
         
         const data = await request.json();
-        console.log("Datos recibidos:", data);
         
         const { name } = data;
 
@@ -38,15 +32,13 @@ export async function POST(request: NextRequest) {
             expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString()
         };
         
-        console.log("Datos a insertar:", terminalData);
-        
         const { data: insertedData, error } = await supabase
             .from('terminals')
             .insert(terminalData)
-            .select(); // Agregamos select para ver los datos insertados
+            .select();
 
         if (error) {
-            console.error("Error de Supabase:", error);
+            console.error("Error: ", error);
             return NextResponse.json({ error: error.message, details: error }, { status: 400 });
         }
 
