@@ -14,6 +14,7 @@ const supabase = createClient(
 );
 
 export async function POST(request: NextRequest) {
+
     try {
         
         const data = await request.json();
@@ -24,7 +25,6 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Name is required' }, { status: 400 });
         }
         
-        // Creamos el objeto de inserción
         const terminalData = {
             name,
             status: 'active',
