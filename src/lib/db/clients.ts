@@ -1,18 +1,18 @@
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/utils/supabase/server"
 
-// Obtener todos los comercios del usuario
-export async function getClients({ owner_id }: { owner_id: string }) {
-  const supabase = await createClient();
-  try {
-    const { data, error } = await supabase
-        .from("clients")
-        .select("*")
-        .eq('owner_id', owner_id);
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error("Error:", error);
-    return null;
-  }
+export async function getClients() {
+  const supabase = await createClient()
+
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) throw new Error("Unauthorized")
+
+  const { data: clients, error: clientsError } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('owner_id', user.id)
+
+  if (clientsError) throw clientsError
+  console.log('Clientes:', clients)
+
+  return clients
 }
-
