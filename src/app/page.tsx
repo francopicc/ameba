@@ -1,11 +1,10 @@
 "use client"
-import { getSession } from "@/lib/session";
+import { getSession } from "@/lib/auth/session";
 import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 
 export default function Home() {
   const [session, setSession] = useState<{ user: User } | null>(null);
-  console.log(session)
 
   useEffect(() => {
     async function fetchSession() {

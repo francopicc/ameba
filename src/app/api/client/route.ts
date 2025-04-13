@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { validateSession } from "@/lib/validate";
+import { validateSession } from "@/lib/auth/validate";
 import crypto from 'crypto';
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { validateSession } from "./lib/validate";
+import { validateSession } from "./lib/auth/validate";
 
 let isLogged = false
 
