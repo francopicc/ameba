@@ -5,7 +5,7 @@ import { User } from "@supabase/supabase-js";
 
 export default function Home() {
   const [session, setSession] = useState<{ user: User } | null>(null);
-
+  console.log(session)
   useEffect(() => {
     async function fetchSession() {
       const session = await getSession();
