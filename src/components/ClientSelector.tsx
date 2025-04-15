@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { setActiveClient } from '@/lib/actions/setClient'
+import { setActiveClient } from '@/lib/actions/client'
 
 interface Client {
   id: string

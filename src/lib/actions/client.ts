@@ -66,3 +66,43 @@ export async function setActiveClient(clientId: string) {
   
   return { success: true }
 }
+
+export async function getActiveClient() {
+  const cookieStore = await cookies()
+  const activeClientId = cookieStore.get('active_client_id')?.value
+
+  if (!activeClientId) {
+    throw new Error('No active client ID found')
+  }
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
+          }
+        },
+      },
+    }
+  )
+
+  const { data } = await supabase
+    .from('clients')
+    .select('*')
+    .eq('id', activeClientId)
+    .single()
+
+  return data.name
+}

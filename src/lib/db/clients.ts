@@ -12,7 +12,6 @@ export async function getClients() {
     .eq('owner_id', user.id)
 
   if (clientsError) throw clientsError
-  console.log('Clientes:', clients)
 
   return clients
 }
