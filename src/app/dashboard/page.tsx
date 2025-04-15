@@ -2,14 +2,29 @@ import { getClients } from "@/lib/db/clients"
 import ClientSelector from "@/components/ClientSelector"
 import Sidebar from "@/components/ui/Sidebar"
 
-export default async function Dashboard() {
+export default async function DashboardHome() {
   const clients = await getClients()
+  
+  // Obtener la fecha actual en español
+  const today = new Date()
+  const fecha = today.getDate()
+  const mes = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(today)
 
   return (
-    <main className="p-4">
+    <main className="min-h-screen p-4">
       <Sidebar clients={clients} activePage="home" />
-      <h1 className="text-2xl font-bold mb-4">Clients</h1>
-      <ClientSelector clients={clients} />
+      <div className="ml-[20em] mt-10 max-w-4xl">
+        <h1 className="text-2xl font-bold mb-4">
+          Tu menú personal
+        </h1>
+        <p className="text-stone-400 text-[12.5px]">
+          Te presentamos el resumen al día {fecha} de {mes} de tu empresa.
+        </p>
+        
+        <div className="mt-8 grid gap-6 grid-cols-1 md:grid-cols-2">
+          
+        </div>
+      </div>
     </main>
   )
 }

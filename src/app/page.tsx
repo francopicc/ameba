@@ -4,7 +4,7 @@ import Navbar from "@/components/ui/Navbar";
 export default function Home() {
 
   return (
-    <main className="flex min-h-screen items-center justify-center -tracking-[0.75px]">
+    <main className="flex min-h-screen items-center justify-center">
       <Navbar />
       <Hero />
     </main>

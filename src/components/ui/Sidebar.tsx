@@ -84,13 +84,13 @@ export default function Sidebar({ clients, activePage }: { clients: Client[], ac
                     <Link href="/dashboard" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'home' ? 'bg-stone-200' : ''}`}>
                             Home
                     </Link>
-                    <Link href="/dashboard" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'customers' ? 'bg-stone-200' : ''}`}>
+                    <Link href="/dashboard/customers" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'customers' ? 'bg-stone-200' : ''}`}>
                             Customers
                     </Link>
-                    <Link href="/dashboard" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'payments' ? 'bg-stone-200' : ''}`}>
+                    <Link href="/dashboard/payments" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'payments' ? 'bg-stone-200' : ''}`}>
                             Payments
                     </Link>
-                    <Link href="/dashboard" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'settings' ? 'bg-stone-200' : ''}`}>
+                    <Link href="/dashboard/settings" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'settings' ? 'bg-stone-200' : ''}`}>
                             Settings
                     </Link>
                 </ul>
