@@ -90,6 +90,9 @@ export default function Sidebar({ clients, activePage }: { clients: Client[], ac
                     <Link href="/dashboard/payments" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'payments' ? 'bg-stone-200' : ''}`}>
                             Payments
                     </Link>
+                    <Link href="/dashboard/payments" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'products' ? 'bg-stone-200' : ''}`}>
+                            Products
+                    </Link>
                     <Link href="/dashboard/settings" className={`block p-2 hover:bg-stone-200 transition-all rounded ${activePage === 'settings' ? 'bg-stone-200' : ''}`}>
                             Settings
                     </Link>
