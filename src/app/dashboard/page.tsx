@@ -12,7 +12,6 @@ export default async function DashboardHome() {
 
   return (
     <main className="min-h-screen p-4">
-      <Sidebar clients={clients} activePage="home" />
       <div className="ml-[20em] mt-10 max-w-4xl">
         <h1 className="text-2xl font-bold mb-1">
           Tu menú personal

@@ -10,7 +10,15 @@ interface Client {
     name: string
 }
 
-export default function Sidebar({ clients, activePage }: { clients: Client[], activePage: string }) {
+export default function Sidebar({ 
+  clients, 
+  activePage, 
+  openModal // Nuevo prop para abrir el modal
+}: { 
+  clients: Client[], 
+  activePage: string,
+  openModal: () => void 
+}) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [session, setSession] = useState<{ user: User } | null>(null);
@@ -120,12 +128,15 @@ export default function Sidebar({ clients, activePage }: { clients: Client[], ac
 
                 {isDropdownOpen && (
                     <div className="absolute bottom-full left-0 w-[85%] ml-4 bg-white border border-stone-200 rounded-md shadow-lg max-h-64 overflow-y-auto z-10">
-                        <Link 
-                            href="/dashboard/new-business" 
+                        <p
                             className="block w-full p-2 text-[13px] font-medium text-stone-600 hover:bg-stone-100 transition-all border-b border-stone-100"
+                            onClick={() => {
+                                setIsDropdownOpen(false);
+                                openModal(); // Usar la función recibida como prop
+                            }}
                         >
                             Create new business
-                        </Link>
+                        </p>
                         {clients.length === 0 ? (
                             <div className="p-2 text-stone-500 text-sm">
                                 No clients available
