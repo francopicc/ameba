@@ -1,6 +1,4 @@
 import { getClients } from "@/lib/db/clients"
-import ClientSelector from "@/components/ClientSelector"
-import Sidebar from "@/components/ui/Sidebar"
 
 export default async function DashboardHome() {
   const clients = await getClients()

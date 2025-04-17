@@ -2,11 +2,19 @@
 import { useState } from 'react';
 import Sidebar from '@/components/ui/Sidebar';
 import { Modal } from '@/components/ui/Modal';
+import { Toast } from '@/components/ui/Toast';
 import { ReactNode } from 'react';
+import { setActiveClient } from '@/lib/actions/client';
 
 type ModalContent = {
   type: 'new-business' | 'edit-client' | 'delete-client';
   data?: any;
+}
+
+type ToastState = {
+  message: string;
+  type: 'success' | 'error' | 'info';
+  isVisible: boolean;
 }
 
 export default function ClientSideDashboard({ 
@@ -18,7 +26,33 @@ export default function ClientSideDashboard({
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalContent, setModalContent] = useState<ModalContent | null>(null);
+  const [name, setName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
+  // Estado para el toast
+  const [toast, setToast] = useState<ToastState>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
+
+  // Función para mostrar toast
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({
+      message,
+      type,
+      isVisible: true
+    });
+  };
+
+  // Función para cerrar toast
+  const closeToast = () => {
+    setToast(prev => ({
+      ...prev,
+      isVisible: false
+    }));
+  };
+
   const openModal = (content: ModalContent) => {
     setModalContent(content);
     setIsModalOpen(true);
@@ -36,23 +70,52 @@ export default function ClientSideDashboard({
       case 'new-business':
         return (
           <div className="space-y-4">
-            <h2 className="text-xl font-semibold">Crear nuevo comercio</h2>
-            {/* Aquí va tu formulario de nuevo negocio */}
-            <form className="space-y-4">
+            <h2 className="text-xl font-semibold">Create a New Business</h2>
+            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
               <input 
                 type="text" 
-                placeholder="Nombre del comercio"
+                placeholder="Business Name"
                 className="w-full p-2 border rounded"
+                onChange={(e) => setName(e.target.value)}
               />
-              {/* Más campos según necesites */}
               <button 
-                className="w-full bg-stone-800 text-white p-2 rounded"
-                onClick={(e) => {
-                  e.preventDefault();
-                  // Lógica para crear negocio
+                className="w-full text-[13.5px] cursor-pointer bg-stone-800 text-white p-2 rounded disabled:opacity-50"
+                onClick={async (e) => {
+                  setIsLoading(true);
+                  try {
+                    const response = await fetch('/api/client', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({ name }),
+                    });
+                    
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    
+                    const data = await response.json();
+                    closeModal();
+                    await setActiveClient(data[0].id);
+                    
+                    // Mostrar toast de éxito
+                    showToast(`Business "${name}" created successfully!`, 'success');
+                    
+                    // Recargar después de un breve retraso para que se vea el toast
+                    setTimeout(() => {
+                      window.location.reload();
+                    }, 1500);
+                    
+                  } catch (error) {
+                    console.error('Error:', error);
+                    // Mostrar toast de error
+                    showToast(`Error creating business: ${error instanceof Error ? error.message : 'Unknown error'}`, 'error');
+                  } finally {
+                    setIsLoading(false);
+                  }
                 }}
+                disabled={isLoading}
               >
-                Crear Negocio
+                {isLoading ? 'Creating...' : 'Create Business'}
               </button>
             </form>
           </div>
@@ -62,7 +125,6 @@ export default function ClientSideDashboard({
         return (
           <div>
             <h2 className="text-xl font-semibold">Editar cliente</h2>
-            {/* Formulario de edición con los datos del cliente */}
             <pre>{JSON.stringify(modalContent.data, null, 2)}</pre>
           </div>
         );
@@ -77,6 +139,7 @@ export default function ClientSideDashboard({
                 className="bg-red-600 text-white px-4 py-2 rounded"
                 onClick={() => {
                   // Lógica para eliminar
+                  showToast('Cliente eliminado correctamente', 'success');
                   closeModal();
                 }}
               >
@@ -108,6 +171,7 @@ export default function ClientSideDashboard({
         {children}
       </main>
       
+      {/* Modal */}
       {isModalOpen && (
         <Modal 
           isOpen={isModalOpen} 
@@ -116,6 +180,14 @@ export default function ClientSideDashboard({
           {renderModalContent()}
         </Modal>
       )}
+      
+      {/* Toast Notification */}
+      <Toast
+        message={toast.message}
+        isVisible={toast.isVisible}
+        onClose={closeToast}
+        duration={5000}
+      />
     </div>
   );
 }

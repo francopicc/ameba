@@ -148,7 +148,7 @@ export default function Sidebar({
                                     <button
                                         key={client.id}
                                         onClick={() => handleClientSelect(client)}
-                                        className="w-full p-2 cursor-pointer text-left hover:bg-stone-100 transition-all"
+                                        className="w-full p-2 cursor-pointer text-left text-sm hover:bg-stone-100 transition-all"
                                     >
                                         {client.name}
                                     </button>
