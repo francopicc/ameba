@@ -6,7 +6,6 @@ export default async function DashboardProduct () {
     const clients = await getClients();
     return (
         <main>
-            <Sidebar clients={clients} activePage="products"/>
             <div className="ml-[20em] mt-10 max-w-4xl">
                 <ProductList />
             </div>

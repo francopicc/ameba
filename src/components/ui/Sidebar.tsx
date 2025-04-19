@@ -24,11 +24,9 @@ interface Client {
 
 export default function Sidebar({ 
   clients, 
-  activePage, 
   openModal
 }: { 
   clients: Client[], 
-  activePage: string,
   openModal: () => void 
 }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,7 +35,8 @@ export default function Sidebar({
     const [activeClientName, setActiveClientName] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
+    const [activePage, setActivePage] = useState<string>('home');
+
     useEffect(() => {
         async function initialize() {
             try {
@@ -74,7 +73,7 @@ export default function Sidebar({
     // Cerrar el sidebar cuando cambia la página en móvil
     useEffect(() => {
         setIsSidebarOpen(false);
-    }, [activePage]);
+    }, []);
 
     // Cerrar el sidebar cuando cambia el tamaño de la ventana a desktop
     useEffect(() => {
@@ -110,6 +109,17 @@ export default function Sidebar({
             }
         }
     };
+
+    useEffect(() => {
+        // Obtener la página activa desde la URL
+        const pathname = window.location.pathname;
+        const pathParts = pathname.split('/');
+        const activePageFromPath = pathParts[2] || 'home'; // Toma el segundo segmento o 'home' por defecto
+
+        setActivePage(activePageFromPath);
+    }, [setActivePage]);
+
+    
 
     const navItems = [
         { name: 'Home', icon: <Home size={18} />, href: '/dashboard', id: 'home' },

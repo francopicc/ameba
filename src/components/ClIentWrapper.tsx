@@ -161,7 +161,6 @@ export default function ClientSideDashboard({
     <div className="flex">
       <Sidebar 
         clients={clients}
-        activePage="home" 
         openModal={() => openModal({ type: 'new-business' })}
       />
       <main className="flex-grow">
