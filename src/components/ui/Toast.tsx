@@ -29,7 +29,7 @@ export function Toast({ message, isVisible, onClose, duration = 3000 }: ToastPro
                     animate={{ opacity: 1, y: 0, x: 0 }}
                     exit={{ opacity: 0, y: -50, x: 50 }}
                     transition={{ duration: 0.3 }}
-                    className={`fixed top-4 right-4 z-99 p-4 rounded-md text-black border-1 border-stone-300 shadow-lg max-w-md`}
+                    className={`fixed top-4 right-4 z-[9999] p-4 rounded-md bg-white text-black border border-stone-300 shadow-lg max-w-md`}
                 >
                     <div className="flex justify-between items-center">
                         <p>{message}</p>

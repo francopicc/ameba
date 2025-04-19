@@ -13,7 +13,6 @@ type ModalContent = {
 
 type ToastState = {
   message: string;
-  type: 'success' | 'error' | 'info';
   isVisible: boolean;
 }
 
@@ -32,7 +31,6 @@ export default function ClientSideDashboard({
   // Estado para el toast
   const [toast, setToast] = useState<ToastState>({
     message: '',
-    type: 'info',
     isVisible: false
   });
 
@@ -40,7 +38,6 @@ export default function ClientSideDashboard({
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     setToast({
       message,
-      type,
       isVisible: true
     });
   };
@@ -182,12 +179,14 @@ export default function ClientSideDashboard({
       )}
       
       {/* Toast Notification */}
-      <Toast
-        message={toast.message}
-        isVisible={toast.isVisible}
-        onClose={closeToast}
-        duration={5000}
-      />
+      <div className="fixed bottom-4 right-4 z-[9999]">
+        <Toast
+          message={toast.message}
+          isVisible={toast.isVisible}
+          onClose={closeToast}
+          duration={5000}
+        />
+      </div>
     </div>
   );
 }
