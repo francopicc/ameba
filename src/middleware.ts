@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import { validateSession } from "./lib/auth/validate";
 
-let isLogged = false
-
 export async function middleware (request: Request) {
     const session = await validateSession()
-    if (session !== null) {
-        isLogged = true
-    }
-    if (!isLogged) {
-        // Check if the path starts with /api
-        if (request.url.includes('/api')) {
+    if (session === null) {
+        const url = new URL(request.url)
+        if (url.pathname.startsWith('/api')) {
             return new NextResponse(JSON.stringify({ message: 'Unauthorized' }), {
                 status: 401,
                 headers: {

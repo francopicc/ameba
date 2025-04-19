@@ -1,35 +1,49 @@
-"use client"
+import { Modal } from "@/components/ui/Modal"
 import { getClients } from "@/lib/db/clients"
-import { useEffect, useState } from "react"
 
-export default function Dashboard () {
-    const [clients, setClients] = useState<any[]>([])
+export default async function DashboardHome() {
+  const clients = await getClients()
+  
+  // Obtener la fecha actual en español
+  const today = new Date()
+  const fecha = today.getDate()
+  const mes = new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(today)
 
-    useEffect(() => {
-        async function fetchClients() {
-            const clientsData = await getClients({ owner_id: "42c5911f-278f-4069-a5ab-24834ccf7892" })
-            setClients(clientsData || [])
-        }
-        fetchClients()
-    }, [])
-
-    return (
-       <main className="p-4">
-           <h1 className="text-2xl font-bold mb-4">Clients</h1>
-           <div className="grid gap-4">
-               {clients?.map((client) => (
-                   <div 
-                       key={client.id} 
-                       className="p-4 border rounded-lg shadow hover:shadow-md transition-shadow"
-                   >
-                       <h2 className="font-semibold">{client.name}</h2>
-                       <p className="text-gray-600">{client.email}</p>
-                   </div>
-               ))}
-               {clients?.length === 0 && (
-                   <p className="text-gray-500">No clients found.</p>
-               )}
-           </div>
-       </main> 
-    )
+  return (
+    <main className="min-h-screen md:mr-[20em] p-3">
+      {
+        clients.length === 0 ? (
+          <div className="flex items-center justify-center h-screen">
+            <div className="text-center">
+              <h1 className="text-2xl font-bold mb-1">You don't have active bussiness</h1>
+              <p className="text-stone-400 text-[12.5px]">
+                Add a client to start managing your business.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-[5em] max-w-4xl mx-auto">
+            <h1 className="text-2xl font-bold mb-1">
+              Your personal dashboard
+            </h1>
+            <p className="text-stone-400 text-[12.5px]">
+              We present the summary of your company for today {fecha} of {mes}.
+            </p>
+            
+            <div className="mt-8 grid gap-3 grid-cols-1 md:grid-cols-2">
+              <div className="p-6 bg-white rounded-xl border-1 border-stone-200">
+                <h3 className="font-medium mb-2">Total Sales</h3>
+                <p className="text-2xl font-semibold">$0</p>
+              </div>
+              <div className="p-6 bg-white rounded-xl border-1 border-stone-200">
+                <h3 className="font-medium mb-2">Total Products Sales</h3>
+                <p className="text-2xl font-semibold">0</p>
+              </div>
+    
+            </div>
+          </div>
+        )
+      }
+    </main>
+  )
 }

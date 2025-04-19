@@ -29,6 +29,19 @@ export async function POST(request: Request) {
     try {
         const { name } = await request.json();
 
+        if (!name) {
+            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+        }
+
+        if (name.length < 3 || name.length > 50 || name.trim() === '') {
+            return NextResponse.json({ error: 'Name must be at least 3 characters long and less than 50 characters.' }, { status: 400 });
+        }
+
+        const regex = /^[a-zA-Z0-9 ]*$/;
+        if (!regex.test(name)) {
+            return NextResponse.json({ error: 'Name can only contain letters, numbers, and spaces.' }, { status: 400 });
+        }
+
         const { count } = await supabase
             .from('clients')
             .select('*', { count: 'exact' })
