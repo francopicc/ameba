@@ -1,6 +1,7 @@
 "use client"
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation";
+import { useParams } from "next/navigation"
+import { Bitcoin, CreditCard, DollarSign } from "lucide-react"
 
 interface TerminalData {
   success: boolean;
@@ -26,141 +27,130 @@ interface TerminalData {
 }
 
 export default function TerminalPage() {
-    const [data, setData] = useState<TerminalData | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
-    const { terminal } = useParams<{terminal: string}>()
+  const [data, setData] = useState<TerminalData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("")
+  const [method, setMethod] = useState("mercadopago")
+  const { terminal } = useParams<{ terminal: string }>()
 
-    useEffect(() => {
-        async function fetchTerminalData() {
-            try {
-                setLoading(true);
-                const response = await fetch(`/api/terminal/${terminal}`, {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                setData(result);
-            } catch (err) {
-                console.error("Error fetching terminal data:", err);
-                setError(err instanceof Error ? err.message : "Failed to load terminal data");
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        if (terminal) {
-            fetchTerminalData();
-        }
-    }, [terminal]);
-
-    if (loading) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center">
-                    <div className="w-12 h-12 border-2 border-t-gray-800 border-gray-200 rounded-full animate-spin mx-auto mb-4"></div>
-                    <h2 className="text-base font-normal text-gray-600">Loading payment information...</h2>
-                </div>
-            </main>
-        );
+  useEffect(() => {
+    async function fetchTerminalData() {
+      try {
+        setLoading(true)
+        const res = await fetch(`/api/terminal/${terminal}`)
+        if (!res.ok) throw new Error("Not found")
+        const result = await res.json()
+        setData(result)
+      } catch (err) {
+        setError("Terminal not found.")
+      } finally {
+        setLoading(false)
+      }
     }
 
-    if (error) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-                <div className="max-w-md w-full p-6 bg-white rounded-md border border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-800 mb-2">Error Loading Payment</h2>
-                    <p className="text-gray-600">{error}</p>
-                    <button 
-                        onClick={() => window.location.reload()}
-                        className="mt-4 px-4 py-2 bg-gray-800 text-white rounded-md hover:bg-black transition-colors"
-                    >
-                        Try Again
-                    </button>
-                </div>
-            </main>
-        );
+    if (terminal) {
+      fetchTerminalData()
     }
+  }, [terminal])
 
-    if (!data || !data.success) {
-        return (
-            <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-                <div className="max-w-md w-full p-6 bg-white rounded-md border border-gray-200">
-                    <h2 className="text-lg font-medium text-gray-800 mb-2">Payment Not Found</h2>
-                    <p className="text-gray-600">We couldn't find the payment information you're looking for.</p>
-                </div>
-            </main>
-        );
-    }
+  const isExpired = (expires_at: string) => {
+    return new Date(expires_at).getTime() < Date.now()
+  }
 
-    // Format the status for display
-    const getStatusDisplay = (status: string) => {
-        return status.charAt(0).toUpperCase() + status.slice(1);
-    };
+  const showNotFound =
+    !data?.success || isExpired(data.data.expires_at) || data.data.status === "completed"
 
-    // When data is successfully loaded and valid
+  if (loading) {
     return (
-        <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-            <div className="max-w-md w-full bg-white rounded-md border border-gray-200 overflow-hidden">
-                <div className="p-6 border-b border-gray-200">
-                    <h1 className="text-xl font-medium text-gray-800">Payment Terminal</h1>
-                </div>
-                
-                <div className="p-6">
-                    <div className="mb-6">
-                        <h2 className="text-lg font-medium text-gray-800">{data.product.name}</h2>
-                        <p className="text-gray-600 text-sm mt-1">{data.product.description}</p>
-                    </div>
-                    
-                    <div className="py-4 space-y-3">
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Status</span>
-                            <span className="font-medium text-gray-800">
-                                {getStatusDisplay(data.data.status)}
-                            </span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Amount</span>
-                            <span className="text-lg font-medium text-gray-800">${data.product.amount.toFixed(2)}</span>
-                        </div>
-                        
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Expires at</span>
-                            <span className="text-gray-800 text-sm">
-                                {new Date(data.data.expires_at).toLocaleString()}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div className="mt-6">
-                        {data.data.status === 'pending' ? (
-                            <button className="w-full py-2 px-4 bg-gray-800 hover:bg-black text-white font-medium rounded-md transition-colors">
-                                Pay Now
-                            </button>
-                        ) : data.data.status === 'completed' ? (
-                            <div className="text-center p-3 bg-gray-100 text-gray-800 font-medium rounded-md">
-                                Payment completed
-                            </div>
-                        ) : (
-                            <div className="text-center p-3 bg-gray-100 text-gray-800 font-medium rounded-md">
-                                Payment {data.data.status}
-                            </div>
-                        )}
-                    </div>
-                    
-                    <div className="mt-4 text-center text-xs text-gray-500">
-                        <p>Transaction ID: {data.data.id.substring(0, 8)}...</p>
-                    </div>
-                </div>
+      <main className="min-h-screen flex items-center justify-center bg-white text-gray-700">
+        <span className="animate-pulse text-sm">Loading terminal...</span>
+      </main>
+    )
+  }
+
+  if (error || showNotFound) {
+    return (
+      <main className="min-h-screen flex items-center justify-center bg-white text-gray-700 p-6">
+        <div className="max-w-sm w-full border border-gray-300 rounded-lg p-6 text-center">
+          <h1 className="text-lg font-semibold mb-2">Terminal not found</h1>
+          <p className="text-sm text-gray-500">The payment link might be expired or does not exist.</p>
+        </div>
+      </main>
+    )
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center bg-white text-gray-800 p-6">
+      <div className="max-w-md w-full border border-gray-300 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-gray-200">
+          <h1 className="text-xl font-medium">Payment</h1>
+        </div>
+
+        <div className="px-6 py-4 space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold">{data.product.name}</h2>
+            <p className="text-sm text-gray-500">{data.product.description}</p>
+            <p className="text-md font-medium mt-1">${data.product.amount.toFixed(2)}</p>
+          </div>
+
+          <div className="space-y-2">
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-600">Payment Method</label>
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  className={`border p-2 rounded-md flex flex-col items-center text-xs ${
+                    method === "mercadopago"
+                      ? "border-black bg-gray-100"
+                      : "border-gray-300"
+                  }`}
+                  onClick={() => setMethod("mercadopago")}
+                >
+                  <DollarSign size={18} />
+                  MercadoPago
+                </button>
+                <button
+                  className={`border p-2 rounded-md flex flex-col items-center text-xs ${
+                    method === "bitcoin" ? "border-black bg-gray-100" : "border-gray-300"
+                  }`}
+                  onClick={() => setMethod("bitcoin")}
+                >
+                  <Bitcoin size={18} />
+                  Bitcoin
+                </button>
+                <button
+                  className={`border p-2 rounded-md flex flex-col items-center text-xs ${
+                    method === "stripe" ? "border-black bg-gray-100" : "border-gray-300"
+                  }`}
+                  onClick={() => setMethod("stripe")}
+                >
+                  <CreditCard size={18} />
+                  Stripe
+                </button>
+              </div>
             </div>
-        </main>
-    );
+          </div>
+
+          <button
+            disabled={!email}
+            className="w-full py-2 bg-black text-white text-sm font-medium rounded-md hover:opacity-90 disabled:opacity-50 transition-all"
+          >
+            Pay ${data.product.amount.toFixed(2)}
+          </button>
+
+          <p className="text-center text-xs text-gray-400">
+            Transaction ID: {data.data.id.slice(0, 8)}...
+          </p>
+        </div>
+      </div>
+    </main>
+  )
 }
