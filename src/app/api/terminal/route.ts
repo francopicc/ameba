@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-
+import { getProductInformation } from "@/lib/actions/product";
 
 const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -19,17 +19,27 @@ export async function POST(request: NextRequest) {
     try {
         
         const data = await request.json();
-        
-        const { name } = data;
 
-        if (!name) {
-            return NextResponse.json({ error: 'Name is required' }, { status: 400 });
+        if (!data) {
+            return NextResponse.json({ error: 'Invalid request data' }, { status: 400 });
+        }
+
+        const { id } = data;
+
+        const { owner_id } = await getProductInformation({ id });
+        
+        if (!owner_id) {
+            return NextResponse.json({ error: 'Product not found or owner not found.' }, { status: 404 });
+        }
+
+
+        if (!id) {
+            return NextResponse.json({ error: 'Data Error' }, { status: 400 });
         }
         
         const terminalData = {
-            name,
-            status: 'active',
-            client_id: "48d41a5b-c5bf-436a-8f30-b16e2ee0bb38",
+            product_id: id,
+            client_id: owner_id,
             expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString()
         };
         

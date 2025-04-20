@@ -3,7 +3,7 @@ import { getProducts, deleteProduct, editProduct } from "@/lib/actions/product"
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { getSession } from "@/lib/auth/session";
-import { Plus, MoreVertical, Edit, Trash } from "lucide-react";
+import { Plus, MoreVertical, Edit, Trash, Link } from "lucide-react";
 import { Modal } from "./ui/Modal";
 import { addProduct } from "@/lib/actions/product";
 
@@ -186,6 +186,17 @@ export default function ProductList() {
         setOpenMenuId(null);
     };
 
+    const handleCreateLink = async ({ name, description, amount, id } : { name: string, description: string, amount: number, id: string }) => {
+        const res = await fetch('/api/terminal', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, description, id }),
+        });
+        return res;
+    }
+
     const handleModalContent = ({ content }: { content: string }) => {
         if(content === "add-product") {
             return (
@@ -365,7 +376,7 @@ export default function ProductList() {
                                 </button>
                                 
                                 {openMenuId === product.id && (
-                                    <div className="absolute right-0 mt-1 bg-white rounded-md border border-gray-200 z-10 w-36">
+                                    <div className="absolute right-0 mt-1 bg-white rounded-md border border-gray-200 z-10 w-48">
                                         <button 
                                             onClick={() => {
                                                 handleEditProduct(product.id);
@@ -375,14 +386,23 @@ export default function ProductList() {
                                             className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                                         >
                                             <Edit size={14} />
-                                            <span>Editar</span>
+                                            <span>Edit Product</span>
+                                        </button>
+                                        <button 
+                                            onClick={() => {
+                                                const fc = handleCreateLink({name: product.name, description: product.description ?? '', amount: product.amount ?? 0, id: product.id});
+                                            }}
+                                            className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
+                                        >
+                                            <Link size={14} />
+                                            <span>Create Payment Link</span>
                                         </button>
                                         <button 
                                             onClick={() => handleDeleteProduct(product.id)}
                                             className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 text-sm"
                                         >
                                             <Trash size={14} />
-                                            <span>Eliminar</span>
+                                            <span>Delete Product</span>
                                         </button>
                                     </div>
                                 )}
