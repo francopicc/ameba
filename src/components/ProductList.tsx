@@ -1,9 +1,11 @@
 "use client"
-import { getProducts } from "@/lib/actions/product"
+import { getProducts, deleteProduct, editProduct } from "@/lib/actions/product"
 import { User } from "@supabase/supabase-js";
 import { useState, useEffect } from "react";
 import { getSession } from "@/lib/auth/session";
 import { Plus, MoreVertical, Edit, Trash } from "lucide-react";
+import { Modal } from "./ui/Modal";
+import { addProduct } from "@/lib/actions/product";
 
 interface Product {
     id: string;
@@ -12,12 +14,23 @@ interface Product {
     amount?: number;
 }
 
+
 export default function ProductList() {
     const [session, setSession] = useState<{ user: User } | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const [modalProposal, setModalProposal] = useState<string | null>(null);
+    const [currentProductId, setCurrentProductId] = useState<string | null>(null);
+    
+    // Add form state
+    const [formData, setFormData] = useState({
+        name: "",
+        description: "",
+        amount: ""
+    });
 
     useEffect(() => {
         async function loadData() {
@@ -57,19 +70,214 @@ export default function ProductList() {
         }
     };
 
-    const handleAddProduct = () => {
-        // Implementar lógica para añadir producto
-        console.log("Añadir producto");
+    // Handle form input changes
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { id, value } = e.target;
+        setFormData(prevData => ({
+            ...prevData,
+            [id]: value
+        }));
     };
 
-    const handleEditProduct= (productId: string): void => {
-        console.log("Editar producto:", productId);
+    // Handle form submission for adding a product
+    const handleAddProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        try {
+            const owner_id = session?.user?.user_metadata?.active_client_id;
+            
+            if (!owner_id) {
+                setError("No active client found. Please try again later.");
+                return;
+            }
+            
+            // Parse amount to number
+            const amount = formData.amount ? parseFloat(formData.amount) : undefined;
+            
+            // Call addProduct with the form data
+            const newProduct = await addProduct({
+                owner_id,
+                name: formData.name,
+                description: formData.description || "",
+                amount: amount ?? 0
+            });
+            
+            // Add the new product to the products state
+            setProducts(prevProducts => [...prevProducts, newProduct[0]]);
+            
+            // Reset form and close modal
+            setFormData({ name: "", description: "", amount: "" });
+            setIsOpen(false);
+        } catch (err) {
+            console.error("Error adding product:", err);
+            setError("Failed to add product. Please try again later.");
+        }
+    };
+
+    // Handle form submission for editing a product
+    const handleSubmitEditProduct = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        try {
+            const owner_id = session?.user?.user_metadata?.active_client_id;
+            
+            if (!owner_id || !currentProductId) {
+                setError("No active client or product found. Please try again later.");
+                return;
+            }
+            
+            // Parse amount to number
+            const amount = formData.amount ? parseFloat(formData.amount) : undefined;
+            
+            // Call editProduct with the form data
+            const updatedProduct = await editProduct({
+                owner_id,
+                id: currentProductId,
+                name: formData.name,
+                description: formData.description || "",
+                amount: amount ?? 0
+            });
+            
+            // Update the product in the products state
+            setProducts(prevProducts => 
+                prevProducts.map(product => 
+                    product.id === currentProductId 
+                        ? { ...product, name: formData.name, description: formData.description, amount: amount ?? 0 }
+                        : product
+                )
+            );
+            
+            // Reset form, current product ID, and close modal
+            setFormData({ name: "", description: "", amount: "" });
+            setCurrentProductId(null);
+            setIsOpen(false);
+        } catch (err) {
+            console.error("Error updating product:", err);
+            setError("Failed to update product. Please try again later.");
+        }
+    };
+
+    // Load product data for editing
+    const handleEditProduct = (productId: string): void => {
+        // Find the product by ID
+        const productToEdit = products.find(product => product.id === productId);
+        
+        if (productToEdit) {
+            // Set the form data with product values
+            setFormData({
+                name: productToEdit.name,
+                description: productToEdit.description || "",
+                amount: productToEdit.amount?.toString() || ""
+            });
+            
+            // Set the current product ID for the edit operation
+            setCurrentProductId(productId);
+        }
+        
         setOpenMenuId(null);
     };
 
-    const handleDeleteProduct = (productId: string): void => {
-        console.log("Eliminar producto:", productId);
+    const handleDeleteProduct = async (productId: string): Promise<void> => {
+        const product = await deleteProduct({
+            owner_id: session?.user?.user_metadata?.active_client_id,
+            id: productId
+        });
+        setProducts((prevProducts) => prevProducts.filter((p) => p.id !== productId));
         setOpenMenuId(null);
+    };
+
+    const handleModalContent = ({ content }: { content: string }) => {
+        if(content === "add-product") {
+            return (
+                <div className="p-6">
+                    <h2 className="text-xl font-semibold mb-4">Add Product</h2>
+                    <form className="space-y-4" onSubmit={handleAddProduct}>
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
+                            <input 
+                                type="text" 
+                                id="name" 
+                                placeholder="Product Name" 
+                                className="mt-1 p-2 block w-full border-1 border-gray-300 rounded-md" 
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required 
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea 
+                                id="description" 
+                                placeholder="Product Description" 
+                                className="mt-1 p-2 block w-full border-1 border-gray-300 rounded-md"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                            ></textarea>
+                        </div>
+                        <div>
+                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount</label>
+                            <input 
+                                type="text" 
+                                id="amount" 
+                                placeholder="Total Price" 
+                                className="mt-1 p-2 block w-full border-1 border-gray-300 rounded-md" 
+                                value={formData.amount}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <button type="submit" className="bg-stone-800 text-[12.5px] text-white px-4 py-2 w-full rounded-md">Add Product</button>
+                    </form>
+                </div>
+            );
+        } else if(content === "edit-product") {
+            return (
+                <div className="p-6">
+                    <h2 className="text-xl font-semibold mb-4">Edit Product</h2>
+                    <form className="space-y-4" onSubmit={handleSubmitEditProduct}>
+                        <div>
+                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Product Name</label>
+                            <input 
+                                type="text" 
+                                id="name" 
+                                placeholder="Product Name" 
+                                className="mt-1 p-2 block w-full border-1 border-gray-300 rounded-md" 
+                                value={formData.name}
+                                onChange={handleInputChange}
+                                required 
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+                            <textarea 
+                                id="description" 
+                                placeholder="Product Description" 
+                                className="mt-1 p-2 block w-full border-1 border-gray-300 rounded-md"
+                                value={formData.description}
+                                onChange={handleInputChange}
+                            ></textarea>
+                        </div>
+                        <div>
+                            <label htmlFor="amount" className="block text-sm font-medium text-gray-700">Amount</label>
+                            <input 
+                                type="text" 
+                                id="amount" 
+                                placeholder="Total Price" 
+                                className="mt-1 p-2 block w-full border-1 border-gray-300 rounded-md" 
+                                value={formData.amount}
+                                onChange={handleInputChange}
+                            />
+                        </div>
+                        <button type="submit" className="bg-stone-800 text-[12.5px] text-white px-4 py-2 w-full rounded-md">Update Product</button>
+                    </form>
+                </div>
+            );
+        } else {
+            return (
+                <div className="p-6">
+                    <p>No content available</p>
+                </div>
+            );
+        }
     };
 
     if (loading) {
@@ -104,11 +312,23 @@ export default function ProductList() {
 
     return (
         <div className="space-y-4">
+            <Modal isOpen={isOpen} onClose={() => {
+                setIsOpen(false);
+                setFormData({ name: "", description: "", amount: "" });
+                setCurrentProductId(null);
+            }}>
+                {handleModalContent({ content: modalProposal || "add-product" })}
+            </Modal>
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-xl font-semibold text-gray-800">Your Products</h2>
                 <button 
-                    onClick={handleAddProduct}
-                    className="flex items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md transition-colors"
+                    onClick={() => {
+                        setModalProposal("add-product");
+                        setFormData({ name: "", description: "", amount: "" });
+                        setCurrentProductId(null);
+                        setIsOpen(true);
+                    }}
+                    className="flex cursor-pointer items-center gap-1 bg-gray-100 hover:bg-gray-200 text-gray-800 px-4 py-2 rounded-md transition-colors"
                 >
                     <Plus size={18} />
                     <span>Add product</span>
@@ -116,7 +336,7 @@ export default function ProductList() {
             </div>
 
             {products.length === 0 ? (
-                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                <div className="text-center py-12 rounded-lg">
                     <p className="text-gray-500">You don't have products on your actual business.</p>
                 </div>
             ) : (
@@ -147,7 +367,11 @@ export default function ProductList() {
                                 {openMenuId === product.id && (
                                     <div className="absolute right-0 mt-1 bg-white rounded-md border border-gray-200 z-10 w-36">
                                         <button 
-                                            onClick={() => handleEditProduct(product.id)}
+                                            onClick={() => {
+                                                handleEditProduct(product.id);
+                                                setModalProposal("edit-product");
+                                                setIsOpen(true);
+                                            }}
                                             className="flex items-center gap-2 w-full text-left px-4 py-2 hover:bg-gray-50 text-sm text-gray-700"
                                         >
                                             <Edit size={14} />

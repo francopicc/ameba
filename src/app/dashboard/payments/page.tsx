@@ -7,7 +7,6 @@ export default async function DashboardPayments() {
 
   return (
     <main className="p-4">
-        <Sidebar clients={clients} activePage="payments" />
         <div className="ml-[20em] mt-10">
             <h1 className="text-2xl font-bold mb-4">Payments</h1>
             <div className="overflow-x-auto">

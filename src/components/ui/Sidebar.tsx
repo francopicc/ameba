@@ -16,6 +16,7 @@ import {
   Menu,
   X 
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 interface Client {
     id: string
@@ -36,6 +37,8 @@ export default function Sidebar({
     const [isLoading, setIsLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [activePage, setActivePage] = useState<string>('home');
+
+    const pathname = usePathname();
 
     useEffect(() => {
         async function initialize() {
@@ -111,15 +114,9 @@ export default function Sidebar({
     };
 
     useEffect(() => {
-        // Obtener la página activa desde la URL
-        const pathname = window.location.pathname;
-        const pathParts = pathname.split('/');
-        const activePageFromPath = pathParts[2] || 'home'; // Toma el segundo segmento o 'home' por defecto
-
-        setActivePage(activePageFromPath);
-    }, [setActivePage]);
-
-    
+        const path = pathname.split('/')[2]; // Obtener la parte de la URL después de '/dashboard/'
+        setActivePage(path || 'home');
+    }, [pathname]);
 
     const navItems = [
         { name: 'Home', icon: <Home size={18} />, href: '/dashboard', id: 'home' },
