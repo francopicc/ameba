@@ -371,7 +371,10 @@ export default function ProductList() {
                 {handleModalContent({ content: modalProposal || "add-product" })}
             </Modal>
             <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-semibold text-stone-800">Your Products</h2>
+                <div className="flex flex-col gap-1">
+                    <h2 className="text-xl font-semibold text-stone-800">Your Products</h2>
+                    <span className="text-stone-400 text-xs">All the prices are listed in ARS (Argentinian Pesos)</span>
+                </div>
                 <button 
                     onClick={() => {
                         setModalProposal("add-product");

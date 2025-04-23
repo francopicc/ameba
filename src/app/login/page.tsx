@@ -11,7 +11,7 @@ export default function LoginPage() {
                     <form>
                         <button 
                             formAction={signWithGoogle} 
-                            className="w-full px-4 py-3 border border-gray-200 rounded-lg cursor-pointer text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                            className="w-full px-4 py-3 border border-stone-200 rounded-lg cursor-pointer text-stone-700 hover:bg-stone-50 transition-colors flex items-center justify-center gap-2"
                         >
                             Continuar con Google
                         </button>

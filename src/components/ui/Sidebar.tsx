@@ -103,6 +103,7 @@ export default function Sidebar({
 
             if (session?.user) {
                 await setActiveClient(client.id);
+                window.location.reload(); 
             }
         } catch (error) {
             console.error("Error setting active client:", error);

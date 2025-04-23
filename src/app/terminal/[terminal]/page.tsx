@@ -26,10 +26,18 @@ interface TerminalData {
   };
 }
 
+interface PaymentResponse {
+  message: string;
+  payment: any;
+  redirect_url?: string;
+}
+
 export default function TerminalPage() {
   const [data, setData] = useState<TerminalData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [paymentLoading, setPaymentLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [paymentError, setPaymentError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [method, setMethod] = useState("mercadopago")
   const { terminal } = useParams<{ terminal: string }>()
@@ -48,7 +56,6 @@ export default function TerminalPage() {
         setLoading(false)
       }
     }
-
     if (terminal) {
       fetchTerminalData()
     }
@@ -58,12 +65,69 @@ export default function TerminalPage() {
     return new Date(expires_at).getTime() < Date.now()
   }
 
+  const handlePayment = async () => {
+    if (!data || !email) return;
+    
+    try {
+      setPaymentLoading(true)
+      setPaymentError(null)
+      
+      // Create the payment request payload
+      const paymentData = {
+        client_id: data.data.client_id,
+        amount: data.product.amount,
+        callback_url: window.location.origin + "/payment/success",
+        currency: "ARS",
+        product_id: data.product.id.toString(),
+        email: email,
+        payment_method: method,
+        terminal_id: data.data.id,
+      }
+      
+      const response = await fetch('/api/payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData),
+      })
+      
+      const result: PaymentResponse = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(result.message || "Payment processing failed")
+      }
+      
+      // If there's a redirect URL in the response, navigate to it
+      if (result.redirect_url) {
+        window.location.href = result.redirect_url
+      } else {
+        // For sandbox mode, we might just show a success message
+        alert("Sandbox payment successful!")
+        if (data) {
+          setData({
+            ...data,
+            data: {
+              ...data.data,
+              status: "completed"
+            }
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Payment error:", err)
+      setPaymentError(err instanceof Error ? err.message : "Payment processing failed")
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
   const showNotFound =
     !data?.success || isExpired(data.data.expires_at) || data.data.status === "completed"
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white text-gray-700">
+      <main className="min-h-screen flex items-center justify-center bg-white text-stone-700">
         <span className="animate-pulse text-sm">Loading terminal...</span>
       </main>
     )
@@ -71,48 +135,45 @@ export default function TerminalPage() {
 
   if (error || showNotFound) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-white text-gray-700 p-6">
-        <div className="max-w-sm w-full border border-gray-300 rounded-lg p-6 text-center">
+      <main className="min-h-screen flex items-center justify-center bg-white text-stone-700 p-6">
+        <div className="max-w-sm w-full border border-stone-300 rounded-lg p-6 text-center">
           <h1 className="text-lg font-semibold mb-2">Terminal not found</h1>
-          <p className="text-sm text-gray-500">The payment link might be expired or does not exist.</p>
+          <p className="text-sm text-stone-500">The payment link might be expired or does not exist.</p>
         </div>
       </main>
     )
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-white text-gray-800 p-6">
-      <div className="max-w-md w-full border border-gray-300 rounded-xl overflow-hidden shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-200">
+    <main className="min-h-screen flex items-center justify-center bg-white text-stone-800 p-6">
+      <div className="max-w-md w-full border border-stone-300 rounded-xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-stone-200">
           <h1 className="text-xl font-medium">Payment</h1>
         </div>
-
         <div className="px-6 py-4 space-y-4">
           <div>
             <h2 className="text-lg font-semibold">{data.product.name}</h2>
-            <p className="text-sm text-gray-500">{data.product.description}</p>
+            <p className="text-sm text-stone-500">{data.product.description}</p>
             <p className="text-md font-medium mt-1">${data.product.amount.toFixed(2)}</p>
           </div>
-
           <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-600">Your email:</label>
+            <label className="block text-sm font-medium text-stone-600">Your email:</label>
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full px-3 py-2  border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="w-full px-3 py-2 border border-stone-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-stone-400"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <span className="text-xs text-gray-500">You'll receive the product on the email you have introduced.</span>
-
+            <span className="text-xs text-stone-500">You'll receive the product on the email you have introduced.</span>
             <div className="space-y-2 mt-4">
-              <label className="block text-sm font-medium text-gray-600">Payment Method</label>
+              <label className="block text-sm font-medium text-stone-600">Payment Method</label>
               <div className="grid grid-cols-3 gap-2">
                 <button
                   className={`border p-2 rounded-md flex flex-col items-center text-xs ${
                     method === "mercadopago"
-                      ? "border-black bg-gray-100"
-                      : "border-gray-300"
+                      ? "border-black bg-stone-100"
+                      : "border-stone-300"
                   }`}
                   onClick={() => setMethod("mercadopago")}
                 >
@@ -121,7 +182,7 @@ export default function TerminalPage() {
                 </button>
                 <button
                   className={`border p-2 rounded-md flex flex-col items-center text-xs ${
-                    method === "bitcoin" ? "border-black bg-gray-100" : "border-gray-300"
+                    method === "bitcoin" ? "border-black bg-stone-100" : "border-stone-300"
                   }`}
                   onClick={() => setMethod("bitcoin")}
                 >
@@ -130,7 +191,7 @@ export default function TerminalPage() {
                 </button>
                 <button
                   className={`border p-2 rounded-md flex flex-col items-center text-xs ${
-                    method === "stripe" ? "border-black bg-gray-100" : "border-gray-300"
+                    method === "stripe" ? "border-black bg-stone-100" : "border-stone-300"
                   }`}
                   onClick={() => setMethod("stripe")}
                 >
@@ -140,15 +201,29 @@ export default function TerminalPage() {
               </div>
             </div>
           </div>
-
+          
+          {paymentError && (
+            <div className="text-red-500 text-sm bg-red-50 p-2 rounded">
+              {paymentError}
+            </div>
+          )}
+          
           <button
-            disabled={!email}
+            disabled={!email || paymentLoading}
             className="w-full py-2 bg-black text-white text-sm font-medium rounded-md hover:opacity-90 disabled:opacity-50 transition-all"
+            onClick={handlePayment}
           >
-            Pay ARS${data.product.amount.toFixed(2)}
+            {paymentLoading ? "Processing..." : `Pay ARS$${data.product.amount.toFixed(2)}`}
           </button>
-
-          <p className="text-center text-xs text-gray-400">
+          
+          <div className="flex items-center justify-center gap-1">
+            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+            <p className="text-center text-xs text-stone-500">
+              Sandbox Mode Active
+            </p>
+          </div>
+          
+          <p className="text-center text-xs text-stone-400">
             Transaction ID: {data.data.id}
           </p>
         </div>
