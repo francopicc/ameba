@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getProductInformation } from "@/lib/actions/product";
 
 export async function GET(request: Request, { params }: { params: { terminal: string } }) {
-    const { terminal } = params
+    const { terminal } = await params
 
     if (!terminal) {
         return new Response("Terminal ID is required", { status: 400 })
