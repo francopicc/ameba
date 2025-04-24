@@ -106,7 +106,7 @@ export default function PaymentList() {
 
     return (
         <div className="w-full">
-            <h1 className="text-2xl font-bold mb-4">Payments</h1>
+            <h1 className="text-2xl font-semibold mb-4">Payments</h1>
             
             {isLoading ? (
                 <div className="space-y-4">

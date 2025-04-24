@@ -65,11 +65,11 @@ export default function DashboardClientWrapper({ clients }: { clients: Client[] 
 
   const today = new Date()
   const fecha = today.getDate()
-  const mes = new Intl.DateTimeFormat("es-ES", { month: "long" }).format(today)
+  const mes = new Intl.DateTimeFormat("en-ES", { month: "long" }).format(today)
 
   if (loading) {
     return (
-      <div className="mt-[5em] max-w-4xl mx-auto animate-pulse">
+      <div className="mt-[3em] max-w-4xl mx-auto animate-pulse">
         <div className="h-6 bg-stone-200 rounded w-1/3 mb-2"></div>
         <div className="h-4 bg-stone-200 rounded w-2/3 mb-6"></div>
 
@@ -101,10 +101,10 @@ export default function DashboardClientWrapper({ clients }: { clients: Client[] 
   }
 
   return (
-    <div className="md:mt-[5em] max-w-4xl mx-auto">
+    <div className="md:mt-[3em] max-w-4xl mx-auto">
       <h1 className="text-2xl font-bold mb-1">Your personal dashboard</h1>
       <p className="text-stone-400 text-[12.5px]">
-        We present the summary of your company for today {fecha} of {mes}.
+        We present the summary of your company for today {mes} {fecha}.
       </p>
 
       <div className="mt-8 grid gap-3 grid-cols-1 md:grid-cols-2">

@@ -103,7 +103,6 @@ export async function getTotalPaymentStats({ owner_id }: { owner_id: string }) {
 
         const totalSales = payments.length;
         const totalRevenue = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
-        console.log(totalSales)
         return {
             success: true,
             stats: {
