@@ -220,7 +220,6 @@ export default function ProductList() {
             },
             body: JSON.stringify({ name, description, id }),
         });
-        console.log(res)
         return res.json();
     }
 
@@ -439,7 +438,6 @@ export default function ProductList() {
                                                     amount: product.amount ?? 0, 
                                                     id: product.id
                                                 }).then((response) => {
-                                                    console.log("API Response:", response); // Para debugging
                                                     
                                                     if (response.success) {
                                                         // La API devuelve { success: true, data: insertedData }

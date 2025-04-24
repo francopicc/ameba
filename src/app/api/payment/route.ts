@@ -26,7 +26,6 @@ interface PaymentRequest {
 export async function POST(request: Request): Promise<NextResponse> {
   try {
     const body: PaymentRequest = await request.json();
-    console.log(body)
     if (!body.client_id || !body.amount || !body.callback_url) {
       return NextResponse.json(
         { error: "Missing required fields" },
