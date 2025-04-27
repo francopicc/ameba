@@ -62,7 +62,6 @@ export default function ClientSideDashboard({
 
   const renderModalContent = () => {
     if (!modalContent) return null;
-
     switch (modalContent.type) {
       case 'new-business':
         return (
@@ -117,7 +116,6 @@ export default function ClientSideDashboard({
             </form>
           </div>
         );
-
       case 'edit-client':
         return (
           <div>
@@ -125,7 +123,6 @@ export default function ClientSideDashboard({
             <pre>{JSON.stringify(modalContent.data, null, 2)}</pre>
           </div>
         );
-
       case 'delete-client':
         return (
           <div className="space-y-4">
@@ -143,7 +140,7 @@ export default function ClientSideDashboard({
                 Eliminar
               </button>
               <button 
-                className="bg-gray-200 px-4 py-2 rounded"
+                className="bg-stone-200 px-4 py-2 rounded"
                 onClick={closeModal}
               >
                 Cancelar
@@ -151,21 +148,26 @@ export default function ClientSideDashboard({
             </div>
           </div>
         );
-
       default:
         return null;
     }
   };
   
   return (
-    <div className="flex">
-      <Sidebar 
-        clients={clients}
-        activePage="home" 
-        openModal={() => openModal({ type: 'new-business' })}
-      />
-      <main className="flex-grow">
-        {children}
+    <div className="flex h-screen overflow-hidden">
+      {/* Sidebar fijo en la izquierda */}
+      <div className="flex-shrink-0">
+        <Sidebar 
+          clients={clients}
+          openModal={() => openModal({ type: 'new-business' })}
+        />
+      </div>
+      
+      {/* Contenido principal con scroll independiente */}
+      <main className="flex-grow overflow-y-auto p-6">
+        <div className="max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
       
       {/* Modal */}

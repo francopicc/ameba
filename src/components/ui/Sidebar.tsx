@@ -16,6 +16,7 @@ import {
   Menu,
   X 
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 interface Client {
     id: string
@@ -24,11 +25,9 @@ interface Client {
 
 export default function Sidebar({ 
   clients, 
-  activePage, 
   openModal
 }: { 
   clients: Client[], 
-  activePage: string,
   openModal: () => void 
 }) {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -37,7 +36,10 @@ export default function Sidebar({
     const [activeClientName, setActiveClientName] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    
+    const [activePage, setActivePage] = useState<string>('home');
+
+    const pathname = usePathname();
+
     useEffect(() => {
         async function initialize() {
             try {
@@ -74,7 +76,7 @@ export default function Sidebar({
     // Cerrar el sidebar cuando cambia la página en móvil
     useEffect(() => {
         setIsSidebarOpen(false);
-    }, [activePage]);
+    }, []);
 
     // Cerrar el sidebar cuando cambia el tamaño de la ventana a desktop
     useEffect(() => {
@@ -101,6 +103,7 @@ export default function Sidebar({
 
             if (session?.user) {
                 await setActiveClient(client.id);
+                window.location.reload(); 
             }
         } catch (error) {
             console.error("Error setting active client:", error);
@@ -110,6 +113,11 @@ export default function Sidebar({
             }
         }
     };
+
+    useEffect(() => {
+        const path = pathname.split('/')[2]; // Obtener la parte de la URL después de '/dashboard/'
+        setActivePage(path || 'home');
+    }, [pathname]);
 
     const navItems = [
         { name: 'Home', icon: <Home size={18} />, href: '/dashboard', id: 'home' },
