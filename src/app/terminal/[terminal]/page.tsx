@@ -1,7 +1,8 @@
 "use client"
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Bitcoin, CreditCard, DollarSign } from "lucide-react"
+import { createClient } from "@supabase/supabase-js"
 
 interface TerminalData {
   success: boolean;
@@ -28,9 +29,17 @@ interface TerminalData {
 
 interface PaymentResponse {
   message: string;
-  payment: any;
+  payment: {
+    id: string;
+    status: string;
+  };
   redirect_url?: string;
 }
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default function TerminalPage() {
   const [data, setData] = useState<TerminalData | null>(null)
@@ -41,6 +50,7 @@ export default function TerminalPage() {
   const [email, setEmail] = useState("")
   const [method, setMethod] = useState("mercadopago")
   const { terminal } = useParams<{ terminal: string }>()
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchTerminalData() {
@@ -49,6 +59,13 @@ export default function TerminalPage() {
         const res = await fetch(`/api/terminal/${terminal}`)
         if (!res.ok) throw new Error("Not found")
         const result = await res.json()
+        
+        // If terminal status is already "approved", redirect to not found
+        if (result.data.status === "approved") {
+          setError("Terminal already used")
+          return
+        }
+        
         setData(result)
       } catch (err) {
         setError("Terminal not found.")
@@ -63,6 +80,27 @@ export default function TerminalPage() {
 
   const isExpired = (expires_at: string) => {
     return new Date(expires_at).getTime() < Date.now()
+  }
+
+  const updateTerminalStatus = async (terminalId: string, status: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('terminals')
+        .update({ status: status })
+        .eq('id', terminalId)
+      
+      console.log(data)
+
+      if (error) {
+        console.error("Error updating terminal status:", error)
+        return false
+      }
+      
+      return true
+    } catch (err) {
+      console.error("Failed to update terminal status:", err)
+      return false
+    }
   }
 
   const handlePayment = async () => {
@@ -98,18 +136,32 @@ export default function TerminalPage() {
         throw new Error(result.message || "Payment processing failed")
       }
       
+      // Check if the payment status is approved
+      if (result.payment && result.payment.status === "approved") {
+        // Update status in Supabase
+        await updateTerminalStatus(data.data.id, "approved")
+        
+        // Redirect to success page with transaction ID
+        router.push(`/terminal/success?transactionId=${result.payment.id}&productId=${data.product.id}`)
+        return
+      }
+      
       // If there's a redirect URL in the response, navigate to it
       if (result.redirect_url) {
         window.location.href = result.redirect_url
       } else {
-        // For sandbox mode, we might just show a success message
-        alert("Sandbox payment successful!")
+        // For sandbox mode, update the terminal status in Supabase
+        await updateTerminalStatus(data.data.id, "approved")
+        
+        // Redirect to success page with transaction ID
+        router.push(`/terminal/success?transactionId=${data.data.id}&productId=${data.product.id}`)
+        
         if (data) {
           setData({
             ...data,
             data: {
               ...data.data,
-              status: "completed"
+              status: "approved"
             }
           })
         }
@@ -123,7 +175,10 @@ export default function TerminalPage() {
   }
 
   const showNotFound =
-    !data?.success || isExpired(data.data.expires_at) || data.data.status === "completed"
+    !data?.success || 
+    isExpired(data.data.expires_at) || 
+    data.data.status === "completed" ||
+    data.data.status === "approved"
 
   if (loading) {
     return (
@@ -138,7 +193,9 @@ export default function TerminalPage() {
       <main className="min-h-screen flex items-center justify-center bg-white text-stone-700 p-6">
         <div className="max-w-sm w-full border border-stone-300 rounded-lg p-6 text-center">
           <h1 className="text-lg font-semibold mb-2">Terminal not found</h1>
-          <p className="text-sm text-stone-500">The payment link might be expired or does not exist.</p>
+          <p className="text-sm text-stone-500">
+            {error || "The payment link might be expired, already used, or does not exist."}
+          </p>
         </div>
       </main>
     )
