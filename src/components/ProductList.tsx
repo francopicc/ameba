@@ -445,7 +445,8 @@ export default function ProductList() {
                                                         const terminalData = response.data[0]; // Asumiendo que es el primer elemento del array
                                                         
                                                         if (terminalData && terminalData.url_id) {
-                                                            setPaymentLink(`${window.location.origin}/terminal/${terminalData.url_id}`);
+                                                            // setPaymentLink(`${window.location.origin}/terminal/${terminalData.url_id}`);
+                                                            setPaymentLink(`http://192.168.0.21:3000/terminal/${terminalData.url_id}`);
                                                         } else if (terminalData && terminalData.id) {
                                                             // Si no hay url_id pero sí hay id
                                                             setPaymentLink(`${window.location.origin}/terminal/${terminalData.id}`);
